@@ -63,7 +63,7 @@ module Rack
           html << head(src_html)
           @scripts.each do |script|
             case script
-            when URI, %r{^/}
+            when URI, %r{^(/|https?:)}
               html.script(:src => script.to_s, :type => 'text/javascript')
             when String
               html.script(:type => 'text/javascript') { html << script }
@@ -73,7 +73,7 @@ module Rack
           end
           @stylesheets.each do |stylesheet|
             case stylesheet
-            when URI, %r{^/}
+            when URI, %r{^(/|https?:)}
               html.link(:href => stylesheet.to_s, :rel => 'stylesheet', :type => 'text/css')
             when String
               html.style(:type => 'text/css') { html << stylesheet }
