@@ -7,6 +7,8 @@ module Rack
   
   class Decorator
     
+    VERSION = '0.0.2'
+    
     attr_accessor :use_jquery
     attr_accessor :use_fancyzoom
     attr_accessor :scripts
@@ -61,7 +63,7 @@ module Rack
           html << head(src_html)
           @scripts.each do |script|
             case script
-            when URI
+            when URI, %r{^/}
               html.script(:src => script.to_s, :type => 'text/javascript')
             when String
               html.script(:type => 'text/javascript') { html << script }
@@ -71,7 +73,7 @@ module Rack
           end
           @stylesheets.each do |stylesheet|
             case stylesheet
-            when URI
+            when URI, %r{^/}
               html.link(:href => stylesheet.to_s, :rel => 'stylesheet', :type => 'text/css')
             when String
               html.style(:type => 'text/css') { html << stylesheet }
