@@ -25,7 +25,7 @@ module Rack
         @scripts += [
           URI.parse('/javascript/jqueryfancyzoom/jquery.shadow.js'),
           URI.parse('/javascript/jqueryfancyzoom/jquery.ifixpng.js'),
-          URI.parse('/javascript/jqueryfancyzoom/jquery.fancyzoom.min.js')
+          URI.parse('/javascript/jqueryfancyzoom/jquery.fancyzoom.min.js'),
           %q{
             $(function() {
               $.fn.fancyzoom.defaultsOptions.imgDir = '/images/jqueryfancyzoom/';  // very important must finish with a /
