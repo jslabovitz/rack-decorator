@@ -38,14 +38,18 @@ module Rack
     
     def head(src_html)
       html = ::Builder::XmlMarkup.new
-      html.title { html << src_html.xpath('//body/h1').children.to_html }
-      html
+      html.title(src_html.at_xpath('//h1').content)
+      html.target!
     end
     
     def body(src_html)
-      html = ::Builder::XmlMarkup.new
-      html << src_html.xpath('//body').children.to_html
-      html
+      if (body = src_html.xpath('//body'))
+        html = ::Builder::XmlMarkup.new
+        html << body.children.to_html
+        html.target!
+      else
+        src_html.target!
+      end
     end
     
     def decorate(response)
@@ -78,6 +82,9 @@ module Rack
           if @feed_link
             html.link(:rel => 'alternate', :type => 'application/atom+xml', :title => @feed_link.title, :href => @feed_link.uri)
           end
+        end
+        html.body(:lang => 'en') do
+          html << body(src_html)
         end
       end
       response.body = [html.target!]
