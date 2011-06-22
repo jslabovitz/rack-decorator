@@ -63,8 +63,8 @@ module Rack
           html << head(src_html)
           @scripts.each do |script|
             case script
-            when URI, %r{^(/|https?:)}
-              html.script(:src => script.to_s, :type => 'text/javascript')
+            when URI, %r{^(/\w|https?:)}
+              html.script('', :src => script.to_s, :type => 'text/javascript')
             when String
               html.script(:type => 'text/javascript') { html << script }
             else
