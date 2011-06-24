@@ -1,7 +1,6 @@
 require 'uri'
 require 'rack'
 require 'nokogiri'
-require 'builder'
 
 module Rack
   
@@ -38,58 +37,62 @@ module Rack
       end
     end
     
-    def head(src_html)
-      html = ::Builder::XmlMarkup.new
+    def head(html, src_html)
       html.title(src_html.at_xpath('//h1').content)
-      html.target!
     end
     
-    def body(src_html)
+    def body(html, src_html)
       if (body = src_html.xpath('//body'))
-        html = ::Builder::XmlMarkup.new
         html << body.children.to_html
-        html.target!
       else
-        src_html.target!
+        html << src_html
+      end
+    end
+    
+    def scripts(html)
+      @scripts.each do |script|
+        case script
+        when URI, %r{^(/\w|https?:)}
+          html.script('', :src => script.to_s, :type => 'text/javascript')
+        when String
+          html.script(:type => 'text/javascript') { html << script }
+        else
+          raise "Can't build script tag with #{script.class} object"
+        end
+      end
+    end
+    
+    def stylesheets(html)
+      @stylesheets.each do |stylesheet|
+        case stylesheet
+        when URI, %r{^(/|https?:)}
+          html.link(:href => stylesheet.to_s, :rel => 'stylesheet', :type => 'text/css')
+        when String
+          html.style(:type => 'text/css') { html << stylesheet }
+        else
+          raise "Can't build stylesheet tag with #{stylesheet.class} object"
+        end
       end
     end
     
     def decorate(response)
       src_html = Nokogiri::HTML.parse(response.body.join)
-      html = ::Builder::XmlMarkup.new(:indent => 2)
-      html.declare!(:DOCTYPE, :HTML, :PUBLIC, '-//W3C//DTD HTML 4.01//EN', 'http://www.w3.org/TR/html4/strict.dtd')
-      html.html(:lang => 'en') do
-        html.head do
-          html << head(src_html)
-          @scripts.each do |script|
-            case script
-            when URI, %r{^(/\w|https?:)}
-              html.script('', :src => script.to_s, :type => 'text/javascript')
-            when String
-              html.script(:type => 'text/javascript') { html << script }
-            else
-              raise "Can't build script tag with #{script.class} object"
+      builder = Nokogiri::HTML::Builder.new(:encoding => 'UTF-8') do |html|
+        html.html(:lang => 'en') do
+          html.head do
+            head(html, src_html)
+            scripts(html)
+            stylesheets(html)
+            if @feed_link
+              html.link(:rel => 'alternate', :type => 'application/atom+xml', :title => @feed_link.title, :href => @feed_link.uri)
             end
           end
-          @stylesheets.each do |stylesheet|
-            case stylesheet
-            when URI, %r{^(/|https?:)}
-              html.link(:href => stylesheet.to_s, :rel => 'stylesheet', :type => 'text/css')
-            when String
-              html.style(:type => 'text/css') { html << stylesheet }
-            else
-              raise "Can't build stylesheet tag with #{stylesheet.class} object"
-            end
+          html.body(:lang => 'en') do
+            body(html, src_html)
           end
-          if @feed_link
-            html.link(:rel => 'alternate', :type => 'application/atom+xml', :title => @feed_link.title, :href => @feed_link.uri)
-          end
-        end
-        html.body(:lang => 'en') do
-          html << body(src_html)
         end
       end
-      response.body = [html.target!]
+      response.body = [builder.doc.to_s]
       response.header.delete('Content-Length')
     end
     
