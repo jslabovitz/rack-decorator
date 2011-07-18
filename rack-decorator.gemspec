@@ -19,8 +19,8 @@ Gem::Specification.new do |s|
   }
   s.homepage      = 'http://github.com/jslabovitz/rack-decorator'
 
-  s.add_dependency  'rack',     '~> 1.3.0'
-  s.add_dependency  'nokogiri', '~> 1.4.5'
+  s.add_dependency  'rack'
+  s.add_dependency  'nokogiri'
   
   s.files        = Dir.glob('{bin,lib,test}/**/*') + %w(README.markdown)
   s.require_path = 'lib'
